@@ -1,0 +1,143 @@
+CREATE DATABASE IF NOT EXISTS bdl_os;
+USE bdl_os;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS clients (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180),
+  phone VARCHAR(30),
+  company VARCHAR(180),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS estimates (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT,
+  title VARCHAR(180) NOT NULL,
+  total_amount DECIMAL(12,2) DEFAULT 0,
+  status ENUM('Draft', 'Sent', 'Approved', 'Rejected') DEFAULT 'Draft',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS estimate_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  estimate_id INT NOT NULL,
+  item_name VARCHAR(180) NOT NULL,
+  qty DECIMAL(10,2) NOT NULL,
+  unit_price DECIMAL(12,2) NOT NULL,
+  total_price DECIMAL(12,2) NOT NULL,
+  FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  client_id INT,
+  estimate_id INT,
+  invoice_number VARCHAR(100) UNIQUE,
+  total_amount DECIMAL(12,2) NOT NULL,
+  gst_percent DECIMAL(5,2) DEFAULT 0,
+  payment_status ENUM('Paid', 'Unpaid') DEFAULT 'Unpaid',
+  payment_mode ENUM('UPI', 'Bank', 'Cash') DEFAULT 'UPI',
+  paid_amount DECIMAL(12,2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL,
+  FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS invoice_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  invoice_id INT NOT NULL,
+  item_name VARCHAR(180) NOT NULL,
+  qty DECIMAL(10,2) NOT NULL,
+  unit_price DECIMAL(12,2) NOT NULL,
+  total_price DECIMAL(12,2) NOT NULL,
+  FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type ENUM('income', 'expense') NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  description VARCHAR(255),
+  amount DECIMAL(12,2) NOT NULL,
+  txn_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(180) NOT NULL,
+  status ENUM('Idea', 'In Progress', 'Completed') DEFAULT 'Idea',
+  deadline DATE,
+  budget DECIMAL(12,2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS time_entries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  hours DECIMAL(8,2) NOT NULL,
+  entry_date DATE NOT NULL,
+  notes VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(180) NOT NULL,
+  file_url VARCHAR(300) NOT NULL,
+  tags VARCHAR(300),
+  project_id INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS apps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  app_name VARCHAR(180) NOT NULL,
+  version_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  download_url VARCHAR(300) NOT NULL,
+  release_notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS licenses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_name VARCHAR(180) NOT NULL,
+  license_key VARCHAR(180) UNIQUE NOT NULL,
+  machine_id VARCHAR(180),
+  status ENUM('active', 'inactive', 'expired', 'revoked') DEFAULT 'active',
+  expires_at DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS inquiries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(180) NOT NULL,
+  phone VARCHAR(30),
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  company_name VARCHAR(180),
+  logo_url VARCHAR(300),
+  gst_number VARCHAR(80),
+  address VARCHAR(300),
+  phone VARCHAR(30),
+  email VARCHAR(180),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
