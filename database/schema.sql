@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   gst_percent DECIMAL(5,2) DEFAULT 0,
   payment_status ENUM('Paid', 'Unpaid') DEFAULT 'Unpaid',
   payment_mode ENUM('UPI', 'Bank', 'Cash') DEFAULT 'UPI',
+  paid_amount DECIMAL(12,2) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE SET NULL,
   FOREIGN KEY (estimate_id) REFERENCES estimates(id) ON DELETE SET NULL
@@ -81,6 +82,16 @@ CREATE TABLE IF NOT EXISTS projects (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS time_entries (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  project_id INT NOT NULL,
+  hours DECIMAL(8,2) NOT NULL,
+  entry_date DATE NOT NULL,
+  notes VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS documents (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(180) NOT NULL,
@@ -106,7 +117,7 @@ CREATE TABLE IF NOT EXISTS licenses (
   product_name VARCHAR(180) NOT NULL,
   license_key VARCHAR(180) UNIQUE NOT NULL,
   machine_id VARCHAR(180),
-  status ENUM('active', 'inactive') DEFAULT 'active',
+  status ENUM('active', 'inactive', 'expired', 'revoked') DEFAULT 'active',
   expires_at DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
